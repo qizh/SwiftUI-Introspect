@@ -53,7 +53,7 @@ public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentabl
         _ uiView: IntrospectionUIView,
         context: UIViewRepresentableContext<UIKitIntrospectionView>
     ) {
-        performCustomize(with: uiView, dispatchAttemptsLeft: 3)
+        performCustomize(with: uiView, dispatchAttemptsLeft: 8)
     }
     
     
