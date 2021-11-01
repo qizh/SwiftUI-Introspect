@@ -53,8 +53,15 @@ public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentabl
         _ uiView: IntrospectionUIView,
         context: UIViewRepresentableContext<UIKitIntrospectionView>
     ) {
+        performCustomize(with: uiView, dispatchAttemptsLeft: 3)
+    }
+    
+    private func performCustomize(with uiView: IntrospectionUIView, dispatchAttemptsLeft: Int) {
         DispatchQueue.main.async {
             guard let targetView = self.selector(uiView) else {
+                if dispatchAttemptsLeft > 0 {
+                    performCustomize(with: uiView, dispatchAttemptsLeft: dispatchAttemptsLeft - 1)
+                }
                 return
             }
             self.customize(targetView)
