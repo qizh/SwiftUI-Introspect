@@ -44,12 +44,27 @@ public struct UIKitIntrospectionViewController<TargetViewControllerType: UIViewC
         _ uiViewController: IntrospectionUIViewController,
         context: UIViewControllerRepresentableContext<UIKitIntrospectionViewController>
     ) {
-        DispatchQueue.main.async {
-            guard let targetView = self.selector(uiViewController) else {
-                return
-            }
-            self.customize(targetView)
-        }
+		performCustomize(uiViewController, dispatchAttemptsLeft: 8)
     }
+	
+	private func performCustomize(
+		_ uiViewController: IntrospectionUIViewController,
+		dispatchAttemptsLeft: Int,
+		dispatchStep: DispatchTimeInterval = .milliseconds(10)
+	) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + dispatchStep) {
+			guard let targetView = self.selector(uiViewController) else {
+				if dispatchAttemptsLeft > 0 {
+					performCustomize(
+						uiViewController,
+						dispatchAttemptsLeft: dispatchAttemptsLeft - 1,
+						dispatchStep: dispatchStep
+					)
+				}
+				return
+			}
+			self.customize(targetView)
+		}
+	}
 }
 #endif

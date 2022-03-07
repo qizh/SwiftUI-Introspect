@@ -53,7 +53,7 @@ public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentabl
         _ uiView: IntrospectionUIView,
         context: UIViewRepresentableContext<UIKitIntrospectionView>
     ) {
-        performCustomize(with: uiView, dispatchAttemptsLeft: 8)
+        performCustomize(uiView, dispatchAttemptsLeft: 8)
     }
     
     
@@ -62,13 +62,19 @@ public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentabl
     
     /// Will do asyncAfter(now + `dispatchStep`) and try to find targetView and then `customize` it. Will repeat that until 0 attempts left.
     /// Is needed because during some SwiftUI animations, ViewHost is not getting added to the view hierarchy until a little later.
-    private func performCustomize(with uiView: IntrospectionUIView,
-                                  dispatchAttemptsLeft: Int,
-                                  dispatchStep: DispatchTimeInterval = .milliseconds(1)) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(1)) {
+    private func performCustomize(
+		_ uiView: IntrospectionUIView,
+		dispatchAttemptsLeft: Int,
+		dispatchStep: DispatchTimeInterval = .milliseconds(10)
+	) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + dispatchStep) {
             guard let targetView = self.selector(uiView) else {
                 if dispatchAttemptsLeft > 0 {
-                    performCustomize(with: uiView, dispatchAttemptsLeft: dispatchAttemptsLeft - 1)
+                    performCustomize(
+						uiView,
+						dispatchAttemptsLeft: dispatchAttemptsLeft - 1,
+						dispatchStep: dispatchStep
+					)
                 }
                 return
             }
