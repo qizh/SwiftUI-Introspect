@@ -5,16 +5,23 @@ import SwiftUI
 /// Introspection UIView that is inserted alongside the target view.
 @available(iOS 13.0, *)
 public class IntrospectionUIView: UIView {
-    
+
+    var moveToWindowHandler: (() -> Void)?
+
     required init() {
         super.init(frame: .zero)
         isHidden = true
         isUserInteractionEnabled = false
     }
-    
+
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override public func didMoveToWindow() {
+        super.didMoveToWindow()
+        moveToWindowHandler?()
     }
 }
 
@@ -22,14 +29,14 @@ public class IntrospectionUIView: UIView {
 /// After `updateUIView` is called, it calls `selector` to find the target view, then `customize` when the target view is found.
 @available(iOS 13.0, tvOS 13.0, macOS 10.15.0, *)
 public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentable {
-    
+
     /// Method that introspects the view hierarchy to find the target view.
     /// First argument is the introspection view itself, which is contained in a view host alongside the target view.
     let selector: (IntrospectionUIView) -> TargetViewType?
-    
+
     /// User-provided customization method for the target view.
     let customize: (TargetViewType) -> Void
-    
+
     public init(
         selector: @escaping (IntrospectionUIView) -> TargetViewType?,
         customize: @escaping (TargetViewType) -> Void
@@ -37,7 +44,7 @@ public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentabl
         self.selector = selector
         self.customize = customize
     }
-    
+
     public func makeUIView(context: UIViewRepresentableContext<UIKitIntrospectionView>) -> IntrospectionUIView {
         let view = IntrospectionUIView()
         view.accessibilityLabel = "IntrospectionUIView<\(TargetViewType.self)>"
@@ -55,11 +62,11 @@ public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentabl
     ) {
         performCustomize(uiView, dispatchAttemptsLeft: 8)
     }
-    
-    
-    
+
+
+
     // MARK: - Private
-    
+
     /// Will do asyncAfter(now + `dispatchStep`) and try to find targetView and then `customize` it. Will repeat that until 0 attempts left.
     /// Is needed because during some SwiftUI animations, ViewHost is not getting added to the view hierarchy until a little later.
     private func performCustomize(
@@ -78,7 +85,6 @@ public struct UIKitIntrospectionView<TargetViewType: UIView>: UIViewRepresentabl
                 }
                 return
             }
-            self.customize(targetView)
         }
     }
 }
